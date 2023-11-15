@@ -41,6 +41,22 @@ startBtn.addEventListener('click', function(e){
     ApiCall();
 })
 
+restartBtn.addEventListener('click', function(e){
+    resetGame();
+})
+
+function resetGame() {
+    randomWord = "";
+    wrongGuess = "";
+    displayedWord = [];
+    guesses = 0;
+    wrongGuesses.textContent = ""
+    secretWord.textContent = "[Secret Word]"
+    hangMan.textContent = "Hangman / Guesses Left";
+    userInput.readOnly = true;
+    userInput.value = "";
+}
+
 function ApiCall(){
     //We initiate the fetch request from our random word generator
     fetch('https://random-word-api.herokuapp.com/word')
@@ -55,6 +71,7 @@ function ApiCall(){
 }
 
 function startGame(word){
+    displayedWord = [];
     randomWord = word;
 
     //now we have to change our displayed to have _ for the length of our random word
@@ -64,10 +81,49 @@ function startGame(word){
     }
     //We will update our "Game state"
     updateGameState();
+    userInput.readOnly = false;
 }
 
 function updateGameState(){
     secretWord.textContent = displayedWord.join(" ");
-
+    userInput.value = "";
     hangMan.textContent = `Guesses Left: ${guesses} / ${maxGuesses}`;
+}
+
+userInput.addEventListener('keydown', function(event){
+
+    if(event.key === "Enter"){
+        let guess = userInput.value.toLowerCase()
+        //Check if the user's guess is included in our secret word.
+        if(randomWord.includes(guess)){
+            //now that we know that guess is included. We have to figure out at what indexes it's included
+            for(let i = 0; i < randomWord.length; i++){
+
+                if(randomWord[i] === guess) {
+                    displayedWord[i] = guess;
+                }
+            }
+        } else {
+            wrongGuess += guess;
+            wrongGuesses.textContent = wrongGuess;
+            guesses++;
+        }
+
+
+        updateGameState();
+
+        gameEnd();
+    }
+})
+
+function gameEnd() {
+    //Checking if Guesses = to maxGuesses LOSE
+    //Check if secretWord = to DisplayedWord Winner
+    if (guesses === maxGuesses) {
+        alert(`You Lose! The Word was ${randomWord} `);
+        resetGame();
+    } else if(secretWord === displayedWord,join("")){
+        alert("You Win!!!")
+        resetGame();
+    }
 }
